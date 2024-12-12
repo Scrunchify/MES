@@ -1,24 +1,6 @@
 <?php
 
 include("./connectDB.php");   
-
-  if(isset($_POST["email"]) && isset($_POST["password"])) {
-    $email = $_POST["email"];
-    $password = $_POST["password"];
-  
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = :email");
-    $stmt->bindParam(":email", $email);
-    $stmt->execute();
-
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    $validLogIn = false;
-    foreach($users as $user) {
-      if(password_verify($password, $user["password"])) {
-        $validLogIn = true;
-      }
-    }
-  }
 ?>
 
 <!DOCTYPE html>

@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Redirect based on role
             if ($role == 'customer') {
-                header('Location: customer_dashboard.php'); // Customer dashboard
+                header('Location: customersite.php'); // Customer dashboard
             } elseif ($role == 'employee') {
                 header('Location: employee_dashboard.php'); // Employee dashboard
             }
