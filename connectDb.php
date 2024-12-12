@@ -1,64 +1,62 @@
 <?php
-session_start();
+class UserAuth {
+    private $pdo;
 
-// Database configuration
-$host = 'localhost'; // Database host
-$dbname = 'itl_php'; // Database name
-$username = 'root'; // Database username
-$password = ''; // Database password
-
-// Create PDO instance
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
-}
-
-// Check if form is submitted
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $user = $_POST['username'];
-    $pass = $_POST['password'];
-    $role = $_POST['role'];
-
-    // Prepare the SQL query based on the selected role
-    if ($role == 'customer') {
-        $table = 'customers'; // Assume customers table exists
-    } elseif ($role == 'employee') {
-        $table = 'employees'; // Assume employees table exists
-    } else {
-        die("Invalid role");
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
     }
 
-    // SQL query to get the user data from the database
-    $sql = "SELECT * FROM $table WHERE username = :username LIMIT 1";
-    $stmt = $pdo->prepare($sql);
-    $stmt->bindParam(':username', $user);
-    $stmt->execute();
+    public function login($email, $password) {
+        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
 
-    // Check if user exists
-    if ($stmt->rowCount() > 0) {
-        $userData = $stmt->fetch(PDO::FETCH_ASSOC);
-
-        // Verify password
-        if (password_verify($pass, $userData['password'])) {
-            // Password is correct, create session and redirect
-            $_SESSION['user_id'] = $userData['id'];
-            $_SESSION['username'] = $userData['username'];
-            $_SESSION['role'] = $role;
-
-            // Redirect based on role
-            if ($role == 'customer') {
-                header('Location: customersite.php'); // Customer dashboard
-            } elseif ($role == 'employee') {
-                header('Location: employee_dashboard.php'); // Employee dashboard
+        if ($stmt->rowCount() > 0) {
+            $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (password_verify($password, $userData['password'])) {
+                $_SESSION['user_id'] = $userData['id'];
+                $_SESSION['email'] = $userData['email'];
+                header("Location: dashboard.php");
+                exit;
+            } else {
+                return "Falsches Passwort.";
             }
-            exit;
         } else {
-            echo "Invalid password.";
+            return "Benutzer nicht gefunden.";
         }
-    } else {
-        echo "User not found.";
+    }
+
+    public function signup($email, $password, $confirmPassword) {
+        if ($password !== $confirmPassword) {
+            return "Passwörter stimmen nicht überein.";
+        }
+
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $sql = "INSERT INTO users (email, password) VALUES (:email, :password)";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->bindParam(':password', $hashedPassword);
+
+        if ($stmt->execute()) {
+            return "Account erfolgreich erstellt.";
+        } else {
+            return "Fehler beim Erstellen des Accounts.";
+        }
+    }
+
+    public function forgotPassword($email) {
+        $sql = "SELECT * FROM users WHERE email = :email LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            // Hier kannst du den E-Mail-Versand zur Passwort-Wiederherstellung einfügen
+            return "Anweisungen zum Zurücksetzen des Passworts wurden gesendet.";
+        } else {
+            return "Benutzer nicht gefunden.";
+        }
     }
 }
 ?>
