@@ -18,15 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['user_logged_in'] = true;
                 $_SESSION['role'] = $user['role'];
                 
-                if ($user['role'] == 'employee') {
-                    $_SESSION['employee_logged_in'] = true;
-                    header("Location: employeesite.php");
-                } elseif ($user['role'] == 'customer') {
-                    $_SESSION['customer_logged_in'] = true;
-                    header("Location: customersite.php");
-                } else {
-                    header("Location: index.php");
-                }
+                    header("Location: index.html");
+                
                 exit;
             } else {
                 $error = "Invalid username or password";
